@@ -1,0 +1,17 @@
+[package]
+name = "wasmedge_httpsreq"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+log = "0.4.19"
+wasmedge-sdk = { version = "0.9", features = ["async"] }
+tokio = { version = "1", features = ["full"] }
+tokio-rustls = "0.24.1"
+rustls = "0.21.5"
+webpki-roots = "0.24.0"
+
+[dev-dependencies]
+env_logger = "0.10"
