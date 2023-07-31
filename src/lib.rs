@@ -54,8 +54,10 @@ async fn tls_send(
 fn wasmedge_httpsreq_send_data(
     calling_frame: CallingFrame,
     params: Vec<WasmValue>,
-    host_data: Option<&'static mut WasmEdgeHttpsReqData>,
+    host_data: *mut std::ffi::c_void,
 ) -> Box<dyn std::future::Future<Output = Result<Vec<WasmValue>, HostFuncError>> + Send> {
+    log::trace!("host_data {host_data:p}");
+    let host_data = unsafe { (host_data as *mut WasmEdgeHttpsReqData).as_mut() };
     Box::new(async move {
         let data = match host_data {
             Some(data) => data,
@@ -99,8 +101,12 @@ fn wasmedge_httpsreq_send_data(
 fn wasmedge_httpsreq_get_rcv_len(
     _calling_frame: CallingFrame,
     _params: Vec<WasmValue>,
-    host_data: Option<&'static mut WasmEdgeHttpsReqData>,
+    host_data: *mut std::ffi::c_void,
 ) -> Box<dyn std::future::Future<Output = Result<Vec<WasmValue>, HostFuncError>> + Send> {
+    log::trace!("host_data {host_data:p}");
+
+    let host_data = unsafe { (host_data as *mut WasmEdgeHttpsReqData).as_mut() };
+
     Box::new(async move {
         let data = match host_data {
             Some(data) => data,
@@ -123,8 +129,12 @@ fn wasmedge_httpsreq_get_rcv_len(
 fn wasmedge_httpsreq_get_rcv(
     calling_frame: CallingFrame,
     params: Vec<WasmValue>,
-    host_data: Option<&'static mut WasmEdgeHttpsReqData>,
+    host_data: *mut std::ffi::c_void,
 ) -> Box<dyn std::future::Future<Output = Result<Vec<WasmValue>, HostFuncError>> + Send> {
+    log::trace!("host_data {host_data:p}");
+
+    let host_data = unsafe { (host_data as *mut WasmEdgeHttpsReqData).as_mut() };
+
     Box::new(async move {
         let data = match host_data {
             Some(data) => data,
@@ -178,15 +188,15 @@ impl WasmEdgeHttpsReqModule {
         let data = Box::new(WasmEdgeHttpsReqData::new(client_config));
         let inner = wasmedge_sdk::ImportObjectBuilder::new()
             .with_host_data(data)
-            .with_func_async::<(i32, i32, i32, i32, i32), ()>(
+            .with_async_func::<(i32, i32, i32, i32, i32), ()>(
                 "wasmedge_httpsreq_send_data",
                 wasmedge_httpsreq_send_data,
             )?
-            .with_func_async::<(), i32>(
+            .with_async_func::<(), i32>(
                 "wasmedge_httpsreq_get_rcv_len",
                 wasmedge_httpsreq_get_rcv_len,
             )?
-            .with_func_async::<i32, ()>("wasmedge_httpsreq_get_rcv", wasmedge_httpsreq_get_rcv)?
+            .with_async_func::<i32, ()>("wasmedge_httpsreq_get_rcv", wasmedge_httpsreq_get_rcv)?
             .build("wasmedge_httpsreq")?;
         Ok(Self { inner })
     }
