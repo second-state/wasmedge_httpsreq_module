@@ -7,9 +7,7 @@ edition = "2021"
 
 [dependencies]
 log = "0.4.19"
-wasmedge-sdk = { git = "https://github.com/WasmEdge/wasmedge-rust-sdk.git", rev = "68f6b134", features = [
-    "async",
-] }
+wasmedge-sdk = { git = "https://github.com/second-state/wasmedge-rust-sdk.git", branch = "flows" }
 tokio = { version = "1", features = ["full"] }
 tokio-rustls = "0.24.1"
 rustls = "0.21.5"

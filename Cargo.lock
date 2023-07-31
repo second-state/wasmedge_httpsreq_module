@@ -35,7 +35,7 @@ checksum = "3b13c32d80ecc7ab747b80c3784bce54ee8a7a0cc4fbda9bf4cda2cf6fe90854"
 [[package]]
 name = "async-wasi"
 version = "0.0.1"
-source = "git+https://github.com/WasmEdge/wasmedge-rust-sdk.git?rev=68f6b134#68f6b13419e2ba61646a62969534b9145f2e4c90"
+source = "git+https://github.com/second-state/wasmedge-rust-sdk.git?branch=flows#20afbb48faf548f45527ffd6e73b6e8b9e0acdb5"
 dependencies = [
  "bitflags 2.3.3",
  "cfg-if",
@@ -1019,7 +1019,7 @@ dependencies = [
 [[package]]
 name = "wasmedge-macro"
 version = "0.5.0"
-source = "git+https://github.com/WasmEdge/wasmedge-rust-sdk.git?rev=68f6b134#68f6b13419e2ba61646a62969534b9145f2e4c90"
+source = "git+https://github.com/second-state/wasmedge-rust-sdk.git?branch=flows#20afbb48faf548f45527ffd6e73b6e8b9e0acdb5"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1029,7 +1029,7 @@ dependencies = [
 [[package]]
 name = "wasmedge-sdk"
 version = "0.10.0-dev"
-source = "git+https://github.com/WasmEdge/wasmedge-rust-sdk.git?rev=68f6b134#68f6b13419e2ba61646a62969534b9145f2e4c90"
+source = "git+https://github.com/second-state/wasmedge-rust-sdk.git?branch=flows#20afbb48faf548f45527ffd6e73b6e8b9e0acdb5"
 dependencies = [
  "anyhow",
  "num-derive",
@@ -1044,7 +1044,7 @@ dependencies = [
 [[package]]
 name = "wasmedge-sys"
 version = "0.15.0"
-source = "git+https://github.com/WasmEdge/wasmedge-rust-sdk.git?rev=68f6b134#68f6b13419e2ba61646a62969534b9145f2e4c90"
+source = "git+https://github.com/second-state/wasmedge-rust-sdk.git?branch=flows#20afbb48faf548f45527ffd6e73b6e8b9e0acdb5"
 dependencies = [
  "async-wasi",
  "bindgen",
@@ -1065,7 +1065,7 @@ dependencies = [
 [[package]]
 name = "wasmedge-types"
 version = "0.4.2"
-source = "git+https://github.com/WasmEdge/wasmedge-rust-sdk.git?rev=68f6b134#68f6b13419e2ba61646a62969534b9145f2e4c90"
+source = "git+https://github.com/second-state/wasmedge-rust-sdk.git?branch=flows#20afbb48faf548f45527ffd6e73b6e8b9e0acdb5"
 dependencies = [
  "thiserror",
  "wat",
