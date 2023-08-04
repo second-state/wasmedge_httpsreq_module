@@ -4,10 +4,10 @@ use std::{
 };
 
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use wasmedge_sdk::{error::HostFuncError, CallingFrame, WasmValue};
+use wasmedge_sdk::{async_host_function, error::HostFuncError, Caller, NeverType, WasmValue};
 
 pub struct WasmEdgeHttpsReqModule {
-    inner: wasmedge_sdk::ImportObject<WasmEdgeHttpsReqData>,
+    inner: wasmedge_sdk::ImportObject<NeverType>,
 }
 
 #[derive(Debug)]
@@ -51,122 +51,97 @@ async fn tls_send(
     Ok(buf)
 }
 
-fn wasmedge_httpsreq_send_data(
-    calling_frame: CallingFrame,
-    params: Vec<WasmValue>,
-    host_data: *mut std::ffi::c_void,
-) -> Box<dyn std::future::Future<Output = Result<Vec<WasmValue>, HostFuncError>> + Send> {
-    log::trace!("host_data {host_data:p}");
-    let host_data = unsafe { (host_data as *mut WasmEdgeHttpsReqData).as_mut() };
-    Box::new(async move {
-        let data = match host_data {
-            Some(data) => data,
-            None => {
-                log::error!("host_data is none");
-                return Err(HostFuncError::User(2));
-            }
-        };
+#[async_host_function]
+async fn wasmedge_httpsreq_send_data(
+    caller: Caller,
+    args: Vec<WasmValue>,
+    data: &mut WasmEdgeHttpsReqData,
+) -> Result<Vec<WasmValue>, HostFuncError> {
+    let memory = caller.memory(0).ok_or(HostFuncError::User(1))?;
 
-        let memory = calling_frame.memory_mut(0).ok_or(HostFuncError::User(1))?;
-        if let [host_ptr, host_len, port, body_ptr, body_len] = &params[..] {
-            let host_ptr = host_ptr.to_i32() as u32;
-            let host_len = host_len.to_i32() as u32;
-            let port = port.to_i32();
-            let body_ptr = body_ptr.to_i32() as u32;
-            let body_len = body_len.to_i32() as u32;
+    // let instance = caller.instance_mut().ok_or(HostFuncError::User(2))?;
+    // let data = instance
+    //     .host_data::<WasmEdgeHttpsReqData>()
+    //     .ok_or(HostFuncError::User(3))?;
 
-            let host = memory
-                .get_data(host_ptr, host_len)
-                .or(Err(HostFuncError::User(1)))?;
+    log::trace!("host_data {data:?}");
 
-            let body = memory
-                .get_data(body_ptr, body_len)
-                .or(Err(HostFuncError::User(1)))?;
+    if args.len() != 5 {
+        return Err(HostFuncError::User(4));
+    }
 
-            let resp = tls_send(data.client_config.clone(), host, port as u16, body)
-                .await
-                .map_err(|_e| HostFuncError::User(3))?;
+    let host_ptr = args[0].to_i32() as u32;
+    let host_len = args[1].to_i32() as u32;
+    let port = args[2].to_i32();
+    let body_ptr = args[3].to_i32() as u32;
+    let body_len = args[4].to_i32() as u32;
 
-            if let Ok(mut response) = data.response.lock() {
-                response.push_back(resp);
-            }
+    let host = memory
+        .read(host_ptr, host_len)
+        .or(Err(HostFuncError::User(5)))?;
 
-            Ok(vec![])
-        } else {
-            Err(HostFuncError::User(2))
-        }
-    })
+    let body = memory
+        .read(body_ptr, body_len)
+        .or(Err(HostFuncError::User(6)))?;
+
+    let resp = tls_send(data.client_config.clone(), host, port as u16, body)
+        .await
+        .map_err(|_e| HostFuncError::User(7))?;
+
+    if let Ok(mut response) = data.response.lock() {
+        response.push_back(resp);
+    }
+
+    Ok(vec![])
 }
 
-fn wasmedge_httpsreq_get_rcv_len(
-    _calling_frame: CallingFrame,
-    _params: Vec<WasmValue>,
-    host_data: *mut std::ffi::c_void,
-) -> Box<dyn std::future::Future<Output = Result<Vec<WasmValue>, HostFuncError>> + Send> {
-    log::trace!("host_data {host_data:p}");
+#[async_host_function]
+async fn wasmedge_httpsreq_get_rcv_len(
+    _caller: Caller,
+    _args: Vec<WasmValue>,
+    data: &mut WasmEdgeHttpsReqData,
+) -> Result<Vec<WasmValue>, HostFuncError> {
+    log::trace!("host_data {data:?}");
 
-    let host_data = unsafe { (host_data as *mut WasmEdgeHttpsReqData).as_mut() };
-
-    Box::new(async move {
-        let data = match host_data {
-            Some(data) => data,
-            None => {
-                log::error!("host_data is none");
-                return Err(HostFuncError::User(2));
-            }
-        };
-
-        if let Ok(response) = data.response.lock() {
-            Ok(vec![WasmValue::from_i32(
-                response.front().map(|r| r.len() as i32).unwrap_or(0),
-            )])
-        } else {
-            Ok(vec![WasmValue::from_i32(0)])
-        }
-    })
+    if let Ok(response) = data.response.lock() {
+        Ok(vec![WasmValue::from_i32(
+            response.front().map(|r| r.len() as i32).unwrap_or(0),
+        )])
+    } else {
+        Ok(vec![WasmValue::from_i32(0)])
+    }
 }
 
-fn wasmedge_httpsreq_get_rcv(
-    calling_frame: CallingFrame,
-    params: Vec<WasmValue>,
-    host_data: *mut std::ffi::c_void,
-) -> Box<dyn std::future::Future<Output = Result<Vec<WasmValue>, HostFuncError>> + Send> {
-    log::trace!("host_data {host_data:p}");
+#[async_host_function]
+async fn wasmedge_httpsreq_get_rcv(
+    caller: Caller,
+    args: Vec<WasmValue>,
+    data: &mut WasmEdgeHttpsReqData,
+) -> Result<Vec<WasmValue>, HostFuncError> {
+    log::trace!("host_data {data:?}");
 
-    let host_data = unsafe { (host_data as *mut WasmEdgeHttpsReqData).as_mut() };
+    let mut memory = caller.memory(0).ok_or(HostFuncError::User(1))?;
 
-    Box::new(async move {
-        let data = match host_data {
-            Some(data) => data,
-            None => {
-                log::error!("host_data is none");
-                return Err(HostFuncError::User(2));
-            }
-        };
+    if args.len() != 1 {
+        return Err(HostFuncError::User(2));
+    }
+    let recv_ptr = args[0].to_i32() as u32;
 
-        let mut memory = calling_frame.memory_mut(0).ok_or(HostFuncError::User(1))?;
-        if let [recv_ptr] = &params[..] {
-            let recv_ptr = recv_ptr.to_i32() as u32;
+    let resp = match data.response.lock() {
+        Ok(mut response) => response.pop_front(),
+        Err(_) => None,
+    };
 
-            let resp = if let Ok(mut response) = data.response.lock() {
-                response.pop_front()
-            } else {
-                None
-            };
+    if let Some(data) = resp {
+        memory
+            .write(data, recv_ptr)
+            .or(Err(HostFuncError::User(3)))?;
+    }
 
-            if let Some(resp) = resp {
-                memory
-                    .set_data(resp, recv_ptr)
-                    .or(Err(HostFuncError::User(1)))?;
-            }
-
-            Ok(vec![])
-        } else {
-            Err(HostFuncError::User(2))
-        }
-    })
+    Ok(vec![])
 }
 
+#[allow(deprecated)]
 pub fn default_client_config() -> Arc<rustls::ClientConfig> {
     let mut root_store = rustls::RootCertStore::empty();
     root_store.add_server_trust_anchors(webpki_roots::TLS_SERVER_ROOTS.0.iter().map(|ta| {
@@ -183,27 +158,36 @@ pub fn default_client_config() -> Arc<rustls::ClientConfig> {
     Arc::new(client_config)
 }
 
+// pub struct HTTPsReqData
+
 impl WasmEdgeHttpsReqModule {
     pub fn new(client_config: Arc<rustls::ClientConfig>) -> wasmedge_sdk::WasmEdgeResult<Self> {
-        let data = Box::new(WasmEdgeHttpsReqData::new(client_config));
+        // let data = WasmEdgeHttpsReqData::new(client_config);
+
         let inner = wasmedge_sdk::ImportObjectBuilder::new()
-            .with_host_data(data)
-            .with_async_func::<(i32, i32, i32, i32, i32), ()>(
+            .with_async_func::<(i32, i32, i32, i32, i32), (), WasmEdgeHttpsReqData>(
                 "wasmedge_httpsreq_send_data",
                 wasmedge_httpsreq_send_data,
+                Some(Box::new(WasmEdgeHttpsReqData::new(client_config.clone()))),
             )?
-            .with_async_func::<(), i32>(
+            .with_async_func::<(), i32, WasmEdgeHttpsReqData>(
                 "wasmedge_httpsreq_get_rcv_len",
                 wasmedge_httpsreq_get_rcv_len,
+                Some(Box::new(WasmEdgeHttpsReqData::new(client_config.clone()))),
             )?
-            .with_async_func::<i32, ()>("wasmedge_httpsreq_get_rcv", wasmedge_httpsreq_get_rcv)?
-            .build("wasmedge_httpsreq")?;
+            .with_async_func::<i32, (), WasmEdgeHttpsReqData>(
+                "wasmedge_httpsreq_get_rcv",
+                wasmedge_httpsreq_get_rcv,
+                Some(Box::new(WasmEdgeHttpsReqData::new(client_config.clone()))),
+            )?
+            .build::<NeverType>("wasmedge_httpsreq", None)?;
+
         Ok(Self { inner })
     }
 }
 
-impl Into<wasmedge_sdk::ImportObject<WasmEdgeHttpsReqData>> for WasmEdgeHttpsReqModule {
-    fn into(self) -> wasmedge_sdk::ImportObject<WasmEdgeHttpsReqData> {
+impl Into<wasmedge_sdk::ImportObject<NeverType>> for WasmEdgeHttpsReqModule {
+    fn into(self) -> wasmedge_sdk::ImportObject<NeverType> {
         self.inner
     }
 }

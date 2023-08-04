@@ -13,12 +13,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         wasmedge_httpsreq::WasmEdgeHttpsReqModule::new(wasmedge_httpsreq::default_client_config())?;
 
     let async_state = wasmedge_sdk::r#async::AsyncState::new();
-    wasmedge_sdk::VmBuilder::new()
+    let mut vm = wasmedge_sdk::VmBuilder::new()
         .with_config(config)
         .build()
-        .unwrap()
-        .register_import_module(import.into())?
-        .run_func_from_file_async(&async_state, file_name, "_start", vec![])
+        .unwrap();
+    vm.register_import_module(&import.into())?;
+
+    vm.run_func_from_file_async(&async_state, file_name, "_start", vec![])
         .await
         .unwrap();
 
