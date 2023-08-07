@@ -45,8 +45,8 @@ dependencies = [
 
 [[package]]
 name = "async-wasi"
-version = "0.0.3"
-source = "git+https://github.com/apepkuss/wasmedge-rust-sdk.git?branch=refactor/update-procmacro-async-host-func#c034a9ff9f7b4ec301eaed4524aa7b320324db3a"
+version = "0.1.0"
+source = "git+https://github.com/WasmEdge/wasmedge-rust-sdk.git?branch=main#094eb2d88452582fc290677a0d7a99215930e13d"
 dependencies = [
  "bitflags 2.3.3",
  "cfg-if",
@@ -1579,7 +1579,7 @@ dependencies = [
 [[package]]
 name = "wasmedge-macro"
 version = "0.6.1"
-source = "git+https://github.com/apepkuss/wasmedge-rust-sdk.git?branch=refactor/update-procmacro-async-host-func#c034a9ff9f7b4ec301eaed4524aa7b320324db3a"
+source = "git+https://github.com/WasmEdge/wasmedge-rust-sdk.git?branch=main#094eb2d88452582fc290677a0d7a99215930e13d"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1588,8 +1588,8 @@ dependencies = [
 
 [[package]]
 name = "wasmedge-sdk"
-version = "0.11.1"
-source = "git+https://github.com/apepkuss/wasmedge-rust-sdk.git?branch=refactor/update-procmacro-async-host-func#c034a9ff9f7b4ec301eaed4524aa7b320324db3a"
+version = "0.11.2"
+source = "git+https://github.com/WasmEdge/wasmedge-rust-sdk.git?branch=main#094eb2d88452582fc290677a0d7a99215930e13d"
 dependencies = [
  "anyhow",
  "async-wasi",
@@ -1604,8 +1604,8 @@ dependencies = [
 
 [[package]]
 name = "wasmedge-sys"
-version = "0.16.0"
-source = "git+https://github.com/apepkuss/wasmedge-rust-sdk.git?branch=refactor/update-procmacro-async-host-func#c034a9ff9f7b4ec301eaed4524aa7b320324db3a"
+version = "0.16.2"
+source = "git+https://github.com/WasmEdge/wasmedge-rust-sdk.git?branch=main#094eb2d88452582fc290677a0d7a99215930e13d"
 dependencies = [
  "async-wasi",
  "bindgen",
@@ -1632,7 +1632,7 @@ dependencies = [
 [[package]]
 name = "wasmedge-types"
 version = "0.4.3"
-source = "git+https://github.com/apepkuss/wasmedge-rust-sdk.git?branch=refactor/update-procmacro-async-host-func#c034a9ff9f7b4ec301eaed4524aa7b320324db3a"
+source = "git+https://github.com/WasmEdge/wasmedge-rust-sdk.git?branch=main#094eb2d88452582fc290677a0d7a99215930e13d"
 dependencies = [
  "thiserror",
  "wat",
